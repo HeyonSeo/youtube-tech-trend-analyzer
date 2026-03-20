@@ -159,6 +159,19 @@ youtube-tech-trend-analyzer/
 
 ---
 
+## 문서
+
+| 문서 | 설명 |
+|------|------|
+| **[API Reference](docs/API_REFERENCE.md)** | 전체 API 엔드포인트 상세 문서 (요청/응답 스키마, 에러, Rate Limit) |
+| **[Configuration Guide](docs/CONFIGURATION.md)** | 환경변수 설정 가이드 (Backend + Frontend) |
+| **[Troubleshooting](docs/TROUBLESHOOTING.md)** | 자주 발생하는 문제와 해결 방법 |
+| **[Architecture](docs/architecture.md)** | 시스템 아키텍처 상세 문서 |
+| **[PRD](docs/PRD.md)** | 제품 요구사항 문서 |
+| **[Deployment](docs/DEPLOYMENT.md)** | 배포 가이드 |
+
+---
+
 ## 아키텍처
 
 자세한 내용은 **[docs/architecture.md](docs/architecture.md)** 참조.
