@@ -26,7 +26,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">대시보드</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">대시보드</h1>
           <p className="text-slate-400 text-sm mt-1">
             YouTube 테크 트렌드를 분석합니다
           </p>
@@ -37,13 +37,13 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <RegionToggle value={region} onChange={setRegion} />
 
-        <div className="flex bg-[#1e293b] rounded-lg border border-slate-700 overflow-hidden">
+        <div className="flex bg-white dark:bg-[#1e293b] rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
           <button
             onClick={() => setPeriodDays(7)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               periodDays === 7
                 ? "bg-blue-600 text-white"
-                : "text-slate-400 hover:text-white hover:bg-slate-700"
+                : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700"
             }`}
           >
             7일
@@ -53,7 +53,7 @@ export default function DashboardPage() {
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               periodDays === 30
                 ? "bg-blue-600 text-white"
-                : "text-slate-400 hover:text-white hover:bg-slate-700"
+                : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700"
             }`}
           >
             30일
@@ -78,7 +78,7 @@ export default function DashboardPage() {
       </div>
 
       {error && (
-        <div className="bg-red-900/30 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-600 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
           {error instanceof Error ? error.message : "분석 중 오류가 발생했습니다."}
         </div>
       )}

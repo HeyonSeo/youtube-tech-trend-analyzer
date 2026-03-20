@@ -13,14 +13,14 @@ function formatNumber(n: number): string {
 
 export default function VideoTable({ videos, showLink = false }: VideoTableProps) {
   return (
-    <div className="bg-[#1e293b] rounded-xl border border-slate-700 overflow-hidden">
-      <div className="p-5 border-b border-slate-700">
-        <h3 className="text-lg font-semibold text-white">인기 영상</h3>
+    <div className="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+      <div className="p-5 border-b border-gray-200 dark:border-slate-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">인기 영상</h3>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left">
+        <table className="w-full text-left" aria-label="조회수 상위 영상 목록">
           <thead>
-            <tr className="border-b border-slate-700 bg-slate-800/50">
+            <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
               <th className="px-4 py-3 text-sm font-medium text-slate-400 w-16">
                 순위
               </th>
@@ -45,9 +45,9 @@ export default function VideoTable({ videos, showLink = false }: VideoTableProps
             {videos.map((video, idx) => (
               <tr
                 key={video.video_id}
-                className="border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors"
+                className="border-b border-gray-200 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-800/30 transition-colors"
               >
-                <td className="px-4 py-3 text-center text-slate-300 font-medium">
+                <td className="px-4 py-3 text-center text-gray-600 dark:text-slate-300 font-medium">
                   {idx + 1}
                 </td>
                 <td className="px-4 py-3">
@@ -71,16 +71,16 @@ export default function VideoTable({ videos, showLink = false }: VideoTableProps
                       {video.title}
                     </a>
                   ) : (
-                    <span className="text-white line-clamp-2">{video.title}</span>
+                    <span className="text-gray-900 dark:text-white line-clamp-2">{video.title}</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-slate-300 truncate max-w-[140px]">
+                <td className="px-4 py-3 text-gray-600 dark:text-slate-300 truncate max-w-[140px]">
                   {video.channel}
                 </td>
-                <td className="px-4 py-3 text-slate-300 text-right tabular-nums">
+                <td className="px-4 py-3 text-gray-600 dark:text-slate-300 text-right tabular-nums">
                   {formatNumber(video.views)}
                 </td>
-                <td className="px-4 py-3 text-slate-300 text-right tabular-nums">
+                <td className="px-4 py-3 text-gray-600 dark:text-slate-300 text-right tabular-nums">
                   {formatNumber(video.likes)}
                 </td>
               </tr>

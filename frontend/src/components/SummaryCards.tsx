@@ -45,14 +45,15 @@ export default function SummaryCards({ data }: SummaryCardsProps) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="bg-[#1e293b] rounded-xl p-5 flex items-center gap-4 border border-slate-700"
+          className="bg-white dark:bg-[#1e293b] rounded-xl p-5 flex items-center gap-4 border border-gray-200 dark:border-slate-700"
+          aria-label={card.label}
         >
-          <div className="flex-shrink-0 bg-slate-800 rounded-lg p-3">
+          <div className="flex-shrink-0 bg-gray-100 dark:bg-slate-800 rounded-lg p-3">
             {card.icon}
           </div>
           <div>
             <p className="text-sm text-slate-400">{card.label}</p>
-            <p className="text-xl font-bold text-white truncate max-w-[140px]">
+            <p className="text-xl font-bold text-gray-900 dark:text-white truncate max-w-[140px]">
               {card.value}
             </p>
           </div>

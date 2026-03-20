@@ -23,8 +23,8 @@ export default function InterestRadarChart({ interests }: InterestRadarChartProp
   }));
 
   return (
-    <div className="bg-[#1e293b] rounded-xl p-5 border border-slate-700">
-      <h3 className="text-lg font-semibold text-white mb-4">
+    <div className="bg-white dark:bg-[#1e293b] rounded-xl p-5 border border-gray-200 dark:border-slate-700" role="img" aria-label="관심사 분포 레이더 차트">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         관심사 분포
       </h3>
       <ResponsiveContainer width="100%" height={400}>

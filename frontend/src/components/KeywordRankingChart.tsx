@@ -41,8 +41,8 @@ export default function KeywordRankingChart({
   const chartData = [...keywords].reverse();
 
   return (
-    <div className="bg-[#1e293b] rounded-xl p-5 border border-slate-700">
-      <h3 className="text-lg font-semibold text-white mb-4">
+    <div className="bg-white dark:bg-[#1e293b] rounded-xl p-5 border border-gray-200 dark:border-slate-700" role="img" aria-label="키워드 랭킹 차트">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         키워드 TOP {keywords.length}
       </h3>
       <ResponsiveContainer width="100%" height={height}>
