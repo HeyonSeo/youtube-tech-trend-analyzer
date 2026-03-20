@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechPulse — 목업</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: { 900: '#0f172a', 800: '#1e293b', 700: '#334155', 600: '#475569' },
+            accent: { DEFAULT: '#3b82f6', light: '#60a5fa', dark: '#2563eb' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .nav-link { transition: color 0.2s; }
+    .nav-link:hover { color: #60a5fa; }
+    .nav-link.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+    .card { transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+    .toggle-btn.active { background: #3b82f6; color: white; }
+    .export-dropdown { display: none; }
+    .export-dropdown.show { display: block; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen">
+
+  <!-- ==================== NAV BAR ==================== -->
+  <nav class="bg-dark-800 border-b border-dark-700 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <h1 class="text-xl font-bold text-white flex items-center gap-2">
+          <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+          </svg>
+          TechPulse
+        </h1>
+        <div class="flex gap-6 text-sm">
+          <a href="#dashboard" class="nav-link active pb-1" onclick="showPage('dashboard')">대시보드</a>
+          <a href="#keywords" class="nav-link pb-1 text-gray-400" onclick="showPage('keywords')">키워드</a>
+          <a href="#videos" class="nav-link pb-1 text-gray-400" onclick="showPage('videos')">영상</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <button onclick="toggleExport()" class="flex items-center gap-2 px-3 py-2 bg-dark-700 rounded-lg text-sm hover:bg-dark-600 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            내보내기
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="exportDropdown" class="export-dropdown absolute right-0 mt-2 w-40 bg-dark-700 rounded-lg shadow-xl border border-dark-600 overflow-hidden">
+            <a href="#" class="block px-4 py-2 text-sm hover:bg-dark-600 transition">📄 CSV 다운로드</a>
+            <a href="#" class="block px-4 py-2 text-sm hover:bg-dark-600 transition">📊 Excel 다운로드</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-2 bg-dark-700 rounded-lg">
+          <div class="w-7 h-7 bg-accent rounded-full flex items-center justify-center text-xs font-bold">팀</div>
+          <span class="text-sm">마케팅팀</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== DASHBOARD PAGE ==================== -->
+  <div id="page-dashboard" class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center justify-between mb-8 gap-4">
+      <div>
+        <h2 class="text-2xl font-bold">트렌드 대시보드</h2>
+        <p class="text-gray-400 text-sm mt-1">2026-03-13 ~ 2026-03-20 분석 결과</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Region Toggle -->
+        <div class="flex bg-dark-800 rounded-lg p-1 border border-dark-700">
+          <button class="toggle-btn px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 transition" onclick="setRegion(this)">한국</button>
+          <button class="toggle-btn px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 transition" onclick="setRegion(this)">글로벌</button>
+          <button class="toggle-btn active px-4 py-1.5 rounded-md text-sm font-medium transition" onclick="setRegion(this)">통합</button>
+        </div>
+        <!-- Period Select -->
+        <select class="bg-dark-800 border border-dark-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-accent outline-none">
+          <option selected>최근 7일</option>
+          <option>최근 30일</option>
+        </select>
+        <!-- Analyze Button -->
+        <button class="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          분석 시작
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="card bg-dark-800 rounded-xl p-5 border border-dark-700">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-gray-400 text-sm">수집 영상</span>
+          <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          </div>
+        </div>
+        <p class="text-3xl font-bold">127</p>
+        <p class="text-xs text-green-400 mt-1">▲ 12% vs 지난주</p>
+      </div>
+      <div class="card bg-dark-800 rounded-xl p-5 border border-dark-700">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-gray-400 text-sm">TOP 키워드</span>
+          <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+          </div>
+        </div>
+        <p class="text-3xl font-bold">Galaxy</p>
+        <p class="text-xs text-gray-400 mt-1">출현 빈도 42회</p>
+      </div>
+      <div class="card bg-dark-800 rounded-xl p-5 border border-dark-700">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-gray-400 text-sm">1위 관심사</span>
+          <div class="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+        </div>
+        <p class="text-3xl font-bold truncate">스마트폰</p>
+        <p class="text-xs text-gray-400 mt-1">관련도 점수 120</p>
+      </div>
+      <div class="card bg-dark-800 rounded-xl p-5 border border-dark-700">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-gray-400 text-sm">급상승 키워드</span>
+          <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          </div>
+        </div>
+        <p class="text-3xl font-bold">AI</p>
+        <p class="text-xs text-green-400 mt-1">▲ 5단계 상승</p>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+      <!-- Keyword Bar Chart -->
+      <div class="lg:col-span-3 bg-dark-800 rounded-xl p-6 border border-dark-700">
+        <h3 class="text-lg font-semibold mb-4">키워드 TOP 10</h3>
+        <canvas id="keywordChart" height="280"></canvas>
+      </div>
+      <!-- Interest Radar Chart -->
+      <div class="lg:col-span-2 bg-dark-800 rounded-xl p-6 border border-dark-700">
+        <h3 class="text-lg font-semibold mb-4">관심사 분포</h3>
+        <canvas id="interestChart" height="280"></canvas>
+      </div>
+    </div>
+
+    <!-- Video Table -->
+    <div class="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
+      <div class="px-6 py-4 border-b border-dark-700 flex items-center justify-between">
+        <h3 class="text-lg font-semibold">조회수 상위 영상</h3>
+        <a href="#videos" class="text-accent text-sm hover:underline" onclick="showPage('videos')">전체 보기 →</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-dark-700/50">
+            <tr>
+              <th class="px-6 py-3 text-left text-gray-400 font-medium">순위</th>
+              <th class="px-6 py-3 text-left text-gray-400 font-medium">썸네일</th>
+              <th class="px-6 py-3 text-left text-gray-400 font-medium">제목</th>
+              <th class="px-6 py-3 text-left text-gray-400 font-medium">채널</th>
+              <th class="px-6 py-3 text-right text-gray-400 font-medium">조회수</th>
+              <th class="px-6 py-3 text-right text-gray-400 font-medium">좋아요</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-dark-700">
+            <tr class="hover:bg-dark-700/30 transition">
+              <td class="px-6 py-4 font-bold text-accent">1</td>
+              <td class="px-6 py-4"><div class="w-24 h-14 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">120x68</div></td>
+              <td class="px-6 py-4 font-medium">Galaxy S26 Ultra 완벽 리뷰: 역대급 카메라</td>
+              <td class="px-6 py-4 text-gray-400">잇섭</td>
+              <td class="px-6 py-4 text-right font-mono">2,134,567</td>
+              <td class="px-6 py-4 text-right font-mono">45,200</td>
+            </tr>
+            <tr class="hover:bg-dark-700/30 transition">
+              <td class="px-6 py-4 font-bold text-gray-300">2</td>
+              <td class="px-6 py-4"><div class="w-24 h-14 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">120x68</div></td>
+              <td class="px-6 py-4 font-medium">iPhone 17 Pro vs Galaxy S26 — Ultimate Comparison</td>
+              <td class="px-6 py-4 text-gray-400">MKBHD</td>
+              <td class="px-6 py-4 text-right font-mono">1,892,340</td>
+              <td class="px-6 py-4 text-right font-mono">38,100</td>
+            </tr>
+            <tr class="hover:bg-dark-700/30 transition">
+              <td class="px-6 py-4 font-bold text-gray-300">3</td>
+              <td class="px-6 py-4"><div class="w-24 h-14 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">120x68</div></td>
+              <td class="px-6 py-4 font-medium">ChatGPT-5 출시! AI가 코딩을 완전히 대체할까?</td>
+              <td class="px-6 py-4 text-gray-400">노마드 코더</td>
+              <td class="px-6 py-4 text-right font-mono">1,567,890</td>
+              <td class="px-6 py-4 text-right font-mono">32,400</td>
+            </tr>
+            <tr class="hover:bg-dark-700/30 transition">
+              <td class="px-6 py-4 font-bold text-gray-300">4</td>
+              <td class="px-6 py-4"><div class="w-24 h-14 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">120x68</div></td>
+              <td class="px-6 py-4 font-medium">MacBook Pro M5 리뷰 — 영상편집자가 직접 써봤습니다</td>
+              <td class="px-6 py-4 text-gray-400">테크몽</td>
+              <td class="px-6 py-4 text-right font-mono">1,245,600</td>
+              <td class="px-6 py-4 text-right font-mono">28,900</td>
+            </tr>
+            <tr class="hover:bg-dark-700/30 transition">
+              <td class="px-6 py-4 font-bold text-gray-300">5</td>
+              <td class="px-6 py-4"><div class="w-24 h-14 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">120x68</div></td>
+              <td class="px-6 py-4 font-medium">AirPods Pro 3 Review: Best Earbuds of 2026?</td>
+              <td class="px-6 py-4 text-gray-400">Dave2D</td>
+              <td class="px-6 py-4 text-right font-mono">987,650</td>
+              <td class="px-6 py-4 text-right font-mono">21,300</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== KEYWORDS PAGE ==================== -->
+  <div id="page-keywords" class="max-w-7xl mx-auto px-6 py-8 hidden">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-bold">키워드 상세 분석</h2>
+        <p class="text-gray-400 text-sm mt-1">최근 7일간 테크 리뷰 영상에서 추출된 키워드</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex bg-dark-800 rounded-lg p-1 border border-dark-700">
+          <button class="toggle-btn px-4 py-1.5 rounded-md text-sm font-medium text-gray-400">한국</button>
+          <button class="toggle-btn px-4 py-1.5 rounded-md text-sm font-medium text-gray-400">글로벌</button>
+          <button class="toggle-btn active px-4 py-1.5 rounded-md text-sm font-medium">통합</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Large Keyword Chart -->
+    <div class="bg-dark-800 rounded-xl p-6 border border-dark-700 mb-8">
+      <h3 class="text-lg font-semibold mb-4">키워드 빈도 분석</h3>
+      <canvas id="keywordChartLarge" height="200"></canvas>
+    </div>
+
+    <!-- Keyword Table -->
+    <div class="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
+      <div class="px-6 py-4 border-b border-dark-700">
+        <h3 class="text-lg font-semibold">전체 키워드 목록</h3>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-dark-700/50">
+          <tr>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">순위</th>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">키워드</th>
+            <th class="px-6 py-3 text-right text-gray-400 font-medium">출현 빈도</th>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">관련 관심사</th>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">추세</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-dark-700">
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-accent">1</td><td class="px-6 py-3 font-medium">galaxy</td><td class="px-6 py-3 text-right font-mono">42</td><td class="px-6 py-3"><span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-xs">스마트폰/모바일</span></td><td class="px-6 py-3 text-green-400">▲ 3</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">2</td><td class="px-6 py-3 font-medium">아이폰</td><td class="px-6 py-3 text-right font-mono">38</td><td class="px-6 py-3"><span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-xs">스마트폰/모바일</span></td><td class="px-6 py-3 text-gray-400">— 0</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">3</td><td class="px-6 py-3 font-medium">AI</td><td class="px-6 py-3 text-right font-mono">35</td><td class="px-6 py-3"><span class="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-xs">AI/소프트웨어</span></td><td class="px-6 py-3 text-green-400">▲ 5</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">4</td><td class="px-6 py-3 font-medium">배터리</td><td class="px-6 py-3 text-right font-mono">31</td><td class="px-6 py-3"><span class="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded text-xs">성능/벤치마크</span></td><td class="px-6 py-3 text-green-400">▲ 2</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">5</td><td class="px-6 py-3 font-medium">카메라</td><td class="px-6 py-3 text-right font-mono">28</td><td class="px-6 py-3"><span class="bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded text-xs">카메라/영상</span></td><td class="px-6 py-3 text-green-400">▲ 1</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">6</td><td class="px-6 py-3 font-medium">macbook</td><td class="px-6 py-3 text-right font-mono">25</td><td class="px-6 py-3"><span class="bg-green-500/20 text-green-300 px-2 py-0.5 rounded text-xs">노트북/PC</span></td><td class="px-6 py-3 text-red-400">▼ 2</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">7</td><td class="px-6 py-3 font-medium">성능</td><td class="px-6 py-3 text-right font-mono">23</td><td class="px-6 py-3"><span class="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded text-xs">성능/벤치마크</span></td><td class="px-6 py-3 text-gray-400">— 0</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">8</td><td class="px-6 py-3 font-medium">디스플레이</td><td class="px-6 py-3 text-right font-mono">20</td><td class="px-6 py-3"><span class="bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded text-xs">디스플레이/디자인</span></td><td class="px-6 py-3 text-red-400">▼ 1</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">9</td><td class="px-6 py-3 font-medium">가성비</td><td class="px-6 py-3 text-right font-mono">18</td><td class="px-6 py-3"><span class="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded text-xs">가격/가성비</span></td><td class="px-6 py-3 text-green-400">▲ 4</td></tr>
+          <tr class="hover:bg-dark-700/30"><td class="px-6 py-3 font-bold text-gray-300">10</td><td class="px-6 py-3 font-medium">airpods</td><td class="px-6 py-3 text-right font-mono">15</td><td class="px-6 py-3"><span class="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-xs">오디오/웨어러블</span></td><td class="px-6 py-3 text-green-400 font-medium">🆕 신규</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== VIDEOS PAGE ==================== -->
+  <div id="page-videos" class="max-w-7xl mx-auto px-6 py-8 hidden">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-bold">영상 리스트</h2>
+        <p class="text-gray-400 text-sm mt-1">조회수 기준 상위 영상 (총 127개 수집)</p>
+      </div>
+    </div>
+
+    <div class="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-dark-700/50">
+          <tr>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium w-12">#</th>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">썸네일</th>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">제목</th>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">채널</th>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">언어</th>
+            <th class="px-6 py-3 text-right text-gray-400 font-medium">조회수</th>
+            <th class="px-6 py-3 text-right text-gray-400 font-medium">좋아요</th>
+            <th class="px-6 py-3 text-left text-gray-400 font-medium">게시일</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-dark-700">
+          <tr class="hover:bg-dark-700/30 transition cursor-pointer">
+            <td class="px-6 py-4 font-bold text-accent">1</td>
+            <td class="px-6 py-4"><div class="w-28 h-16 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">썸네일</div></td>
+            <td class="px-6 py-4"><a href="#" class="font-medium text-accent-light hover:underline">Galaxy S26 Ultra 완벽 리뷰: 역대급 카메라</a></td>
+            <td class="px-6 py-4 text-gray-400">잇섭</td>
+            <td class="px-6 py-4"><span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-xs">KO</span></td>
+            <td class="px-6 py-4 text-right font-mono">2,134,567</td>
+            <td class="px-6 py-4 text-right font-mono">45,200</td>
+            <td class="px-6 py-4 text-gray-400">2026-03-18</td>
+          </tr>
+          <tr class="hover:bg-dark-700/30 transition cursor-pointer">
+            <td class="px-6 py-4 font-bold text-gray-300">2</td>
+            <td class="px-6 py-4"><div class="w-28 h-16 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">썸네일</div></td>
+            <td class="px-6 py-4"><a href="#" class="font-medium text-accent-light hover:underline">iPhone 17 Pro vs Galaxy S26 — Ultimate Comparison</a></td>
+            <td class="px-6 py-4 text-gray-400">MKBHD</td>
+            <td class="px-6 py-4"><span class="bg-green-500/20 text-green-300 px-2 py-0.5 rounded text-xs">EN</span></td>
+            <td class="px-6 py-4 text-right font-mono">1,892,340</td>
+            <td class="px-6 py-4 text-right font-mono">38,100</td>
+            <td class="px-6 py-4 text-gray-400">2026-03-17</td>
+          </tr>
+          <tr class="hover:bg-dark-700/30 transition cursor-pointer">
+            <td class="px-6 py-4 font-bold text-gray-300">3</td>
+            <td class="px-6 py-4"><div class="w-28 h-16 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">썸네일</div></td>
+            <td class="px-6 py-4"><a href="#" class="font-medium text-accent-light hover:underline">ChatGPT-5 출시! AI가 코딩을 완전히 대체할까?</a></td>
+            <td class="px-6 py-4 text-gray-400">노마드 코더</td>
+            <td class="px-6 py-4"><span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-xs">KO</span></td>
+            <td class="px-6 py-4 text-right font-mono">1,567,890</td>
+            <td class="px-6 py-4 text-right font-mono">32,400</td>
+            <td class="px-6 py-4 text-gray-400">2026-03-16</td>
+          </tr>
+          <tr class="hover:bg-dark-700/30 transition cursor-pointer">
+            <td class="px-6 py-4 font-bold text-gray-300">4</td>
+            <td class="px-6 py-4"><div class="w-28 h-16 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">썸네일</div></td>
+            <td class="px-6 py-4"><a href="#" class="font-medium text-accent-light hover:underline">MacBook Pro M5 리뷰 — 영상편집자가 직접 써봤습니다</a></td>
+            <td class="px-6 py-4 text-gray-400">테크몽</td>
+            <td class="px-6 py-4"><span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-xs">KO</span></td>
+            <td class="px-6 py-4 text-right font-mono">1,245,600</td>
+            <td class="px-6 py-4 text-right font-mono">28,900</td>
+            <td class="px-6 py-4 text-gray-400">2026-03-15</td>
+          </tr>
+          <tr class="hover:bg-dark-700/30 transition cursor-pointer">
+            <td class="px-6 py-4 font-bold text-gray-300">5</td>
+            <td class="px-6 py-4"><div class="w-28 h-16 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">썸네일</div></td>
+            <td class="px-6 py-4"><a href="#" class="font-medium text-accent-light hover:underline">AirPods Pro 3 Review: Best Earbuds of 2026?</a></td>
+            <td class="px-6 py-4 text-gray-400">Dave2D</td>
+            <td class="px-6 py-4"><span class="bg-green-500/20 text-green-300 px-2 py-0.5 rounded text-xs">EN</span></td>
+            <td class="px-6 py-4 text-right font-mono">987,650</td>
+            <td class="px-6 py-4 text-right font-mono">21,300</td>
+            <td class="px-6 py-4 text-gray-400">2026-03-19</td>
+          </tr>
+          <tr class="hover:bg-dark-700/30 transition cursor-pointer">
+            <td class="px-6 py-4 font-bold text-gray-300">6</td>
+            <td class="px-6 py-4"><div class="w-28 h-16 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">썸네일</div></td>
+            <td class="px-6 py-4"><a href="#" class="font-medium text-accent-light hover:underline">삼성 갤럭시 링2 사용기 — 스마트링의 미래</a></td>
+            <td class="px-6 py-4 text-gray-400">리뷰엉이</td>
+            <td class="px-6 py-4"><span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-xs">KO</span></td>
+            <td class="px-6 py-4 text-right font-mono">876,430</td>
+            <td class="px-6 py-4 text-right font-mono">19,800</td>
+            <td class="px-6 py-4 text-gray-400">2026-03-14</td>
+          </tr>
+          <tr class="hover:bg-dark-700/30 transition cursor-pointer">
+            <td class="px-6 py-4 font-bold text-gray-300">7</td>
+            <td class="px-6 py-4"><div class="w-28 h-16 bg-dark-600 rounded-lg flex items-center justify-center text-xs text-gray-500">썸네일</div></td>
+            <td class="px-6 py-4"><a href="#" class="font-medium text-accent-light hover:underline">Best Budget Laptops 2026 — Top 5 Under $500</a></td>
+            <td class="px-6 py-4 text-gray-400">Linus Tech Tips</td>
+            <td class="px-6 py-4"><span class="bg-green-500/20 text-green-300 px-2 py-0.5 rounded text-xs">EN</span></td>
+            <td class="px-6 py-4 text-right font-mono">765,210</td>
+            <td class="px-6 py-4 text-right font-mono">17,400</td>
+            <td class="px-6 py-4 text-gray-400">2026-03-16</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== SCRIPTS ==================== -->
+  <script>
+    // Page navigation
+    function showPage(page) {
+      document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById('page-' + page).classList.remove('hidden');
+      document.querySelectorAll('.nav-link').forEach(el => {
+        el.classList.remove('active');
+        el.classList.add('text-gray-400');
+      });
+      event.target.classList.add('active');
+      event.target.classList.remove('text-gray-400');
+    }
+
+    // Region toggle
+    function setRegion(btn) {
+      btn.parentElement.querySelectorAll('.toggle-btn').forEach(b => {
+        b.classList.remove('active');
+        b.classList.add('text-gray-400');
+      });
+      btn.classList.add('active');
+      btn.classList.remove('text-gray-400');
+    }
+
+    // Export dropdown
+    function toggleExport() {
+      document.getElementById('exportDropdown').classList.toggle('show');
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.relative')) {
+        document.getElementById('exportDropdown').classList.remove('show');
+      }
+    });
+
+    // Chart colors
+    const CATEGORY_COLORS = {
+      '스마트폰/모바일': '#3b82f6',
+      '노트북/PC': '#22c55e',
+      'AI/소프트웨어': '#a855f7',
+      '오디오/웨어러블': '#6366f1',
+      '카메라/영상': '#ec4899',
+      '성능/벤치마크': '#eab308',
+      '가격/가성비': '#f97316',
+      '디스플레이/디자인': '#06b6d4',
+    };
+
+    const keywordData = [
+      { keyword: 'galaxy', count: 42, category: '스마트폰/모바일' },
+      { keyword: '아이폰', count: 38, category: '스마트폰/모바일' },
+      { keyword: 'AI', count: 35, category: 'AI/소프트웨어' },
+      { keyword: '배터리', count: 31, category: '성능/벤치마크' },
+      { keyword: '카메라', count: 28, category: '카메라/영상' },
+      { keyword: 'macbook', count: 25, category: '노트북/PC' },
+      { keyword: '성능', count: 23, category: '성능/벤치마크' },
+      { keyword: '디스플레이', count: 20, category: '디스플레이/디자인' },
+      { keyword: '가성비', count: 18, category: '가격/가성비' },
+      { keyword: 'airpods', count: 15, category: '오디오/웨어러블' },
+    ];
+
+    // Keyword Bar Chart (Dashboard)
+    function createBarChart(canvasId) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: keywordData.map(d => d.keyword),
+          datasets: [{
+            data: keywordData.map(d => d.count),
+            backgroundColor: keywordData.map(d => CATEGORY_COLORS[d.category] + 'cc'),
+            borderColor: keywordData.map(d => CATEGORY_COLORS[d.category]),
+            borderWidth: 1,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 13 } } }
+          }
+        }
+      });
+    }
+
+    // Interest Radar Chart
+    const interestData = {
+      labels: ['스마트폰/모바일', '노트북/PC', 'AI/소프트웨어', '오디오/웨어러블', '카메라/영상', '성능/벤치마크', '가격/가성비', '디스플레이/디자인'],
+      data: [120, 65, 85, 35, 55, 78, 42, 48]
+    };
+
+    function createRadarChart() {
+      const ctx = document.getElementById('interestChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: interestData.labels,
+          datasets: [{
+            data: interestData.data,
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            borderColor: '#3b82f6',
+            borderWidth: 2,
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: '#fff',
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              grid: { color: '#334155' },
+              angleLines: { color: '#334155' },
+              pointLabels: { color: '#e2e8f0', font: { size: 11 } },
+              ticks: { display: false },
+              suggestedMin: 0,
+            }
+          }
+        }
+      });
+    }
+
+    // Init charts
+    createBarChart('keywordChart');
+    createRadarChart();
+    createBarChart('keywordChartLarge');
+  </script>
+</body>
+</html>
