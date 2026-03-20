@@ -6,8 +6,11 @@ import logging
 import time as _time
 from typing import Annotated
 
+from datetime import date
+
 from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from googleapiclient.errors import HttpError
 from openpyxl import Workbook
@@ -17,8 +20,9 @@ from slowapi.util import get_remote_address
 
 from app import config
 from app.analyzer import TechTrendAnalyzer, clear_cache, get_cache_info
-from app.config import CORS_ORIGINS
-from app.models import AnalysisResult, InterestItem, KeywordItem, VideoItem
+from app.config import CORS_ORIGINS, INTEREST_CATEGORIES, load_search_queries
+from app.database import save_analysis_run, get_trend_comparison, get_trend_history
+from app.models import AnalysisResult, InterestItem, KeywordItem, PaginatedVideos, VideoItem
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -50,6 +54,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +160,10 @@ async def analyze(
     top_n: Annotated[int, Query(ge=1, le=50)] = 10,
 ) -> AnalysisResult:
     analyzer = _get_analyzer()
-    return analyzer.analyze(period_days=period_days, region=region, top_n=top_n)
+    result = analyzer.analyze(period_days=period_days, region=region, top_n=top_n)
+    # Auto-save to DB (non-blocking, errors are logged but not raised)
+    save_analysis_run(result.metadata, result.keywords, result.videos)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -197,17 +206,20 @@ async def get_interests(
 # ---------------------------------------------------------------------------
 
 
-@app.get("/api/videos", response_model=list[VideoItem])
+@app.get("/api/videos", response_model=PaginatedVideos)
 @limiter.limit("30/minute")
 async def get_videos(
     request: Request,
     period_days: Annotated[int, Query(ge=1, le=30)] = 7,
     region: Annotated[str, Query(pattern=r"^(kr|global|all)$")] = "all",
+    offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
-) -> list[VideoItem]:
+) -> PaginatedVideos:
     analyzer = _get_analyzer()
     result = analyzer.analyze(period_days=period_days, region=region)
-    return result.videos[:limit]
+    total = len(result.videos)
+    paginated = result.videos[offset : offset + limit]
+    return PaginatedVideos(total=total, offset=offset, limit=limit, videos=paginated)
 
 
 # ---------------------------------------------------------------------------
@@ -233,10 +245,11 @@ async def export_csv(
         writer.writerow([kw.rank, kw.keyword, kw.count, kw.category])
     buf.seek(0)
 
+    filename = f"techpulse_keywords_{date.today().isoformat()}.csv"
     return StreamingResponse(
         iter([buf.getvalue()]),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=keywords.csv"},
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
 
@@ -276,8 +289,58 @@ async def export_xlsx(
     wb.save(buf)
     buf.seek(0)
 
+    filename = f"techpulse_analysis_{date.today().isoformat()}.xlsx"
     return StreamingResponse(
         buf,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=analysis.xlsx"},
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+# ---------------------------------------------------------------------------
+# Settings (read-only)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/settings")
+@limiter.limit("30/minute")
+async def get_settings(request: Request):
+    kr_queries, en_queries = load_search_queries()
+    return {
+        "search_queries": {"kr": kr_queries, "en": en_queries},
+        "categories": list(INTEREST_CATEGORIES.keys()),
+        "cache_ttl_seconds": config.CACHE_TTL_SECONDS,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Trend tracking
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/trends")
+@limiter.limit("30/minute")
+async def get_trends(
+    request: Request,
+    region: str = Query("all"),
+    weeks: int = Query(2, ge=2, le=12),
+):
+    """Compare keyword trends between analysis runs."""
+    result = get_trend_comparison(region, weeks)
+    if result is None:
+        return {"message": "트렌드 데이터가 부족합니다. 최소 2회 이상 분석을 실행해주세요.", "trends": []}
+    return result
+
+
+@app.get("/api/trends/{keyword}")
+@limiter.limit("30/minute")
+async def get_keyword_trend_history(
+    request: Request,
+    keyword: str,
+    limit: int = Query(12, ge=1, le=52),
+):
+    """Get historical data for a specific keyword."""
+    result = get_trend_history(keyword, limit)
+    if result is None:
+        return {"message": "키워드 이력이 없습니다.", "history": []}
+    return {"keyword": keyword, "history": result}

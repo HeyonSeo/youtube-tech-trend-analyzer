@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+import json
 import os
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ---------------------------------------------------------------------------
+# Custom search queries from JSON file
+# ---------------------------------------------------------------------------
+CUSTOM_QUERIES_FILE: str = os.getenv("CUSTOM_QUERIES_FILE", "")
 
 # ---------------------------------------------------------------------------
 # YouTube API
@@ -124,3 +130,22 @@ CORS_ORIGINS: list[str] = (
     if _cors_env
     else ["http://localhost:3000"]
 )
+
+# ---------------------------------------------------------------------------
+# Supabase
+# ---------------------------------------------------------------------------
+SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
+DB_ENABLED: bool = bool(SUPABASE_URL and SUPABASE_KEY)
+
+
+# ---------------------------------------------------------------------------
+# Load custom search queries
+# ---------------------------------------------------------------------------
+def load_search_queries() -> tuple[list[str], list[str]]:
+    """Load search queries from a custom JSON file if configured, otherwise use defaults."""
+    if CUSTOM_QUERIES_FILE and os.path.exists(CUSTOM_QUERIES_FILE):
+        with open(CUSTOM_QUERIES_FILE) as f:
+            data = json.load(f)
+            return data.get("kr", SEARCH_QUERIES_KR), data.get("en", SEARCH_QUERIES_EN)
+    return SEARCH_QUERIES_KR, SEARCH_QUERIES_EN

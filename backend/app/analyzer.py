@@ -100,7 +100,7 @@ class TechTrendAnalyzer:
         self,
         query: str,
         published_after: str,
-        max_results: int = 50,
+        max_results: int = 25,
     ) -> dict:
         """Search YouTube for videos matching *query* published after *published_after* (ISO-8601)."""
         request = self._youtube.search().list(
@@ -198,10 +198,12 @@ class TechTrendAnalyzer:
         all_videos: dict[str, dict] = {}
         keyword_counter: Counter = Counter()
         errors: list[str] = []
+        api_calls_used: int = 0
 
         for query in queries:
             try:
                 results = self.search_videos(query, published_after)
+                api_calls_used += 1
             except HttpError as e:
                 msg = f"Search failed for query '{query}': HTTP {e.resp.status} - {e}"
                 logger.error(msg)
@@ -221,15 +223,21 @@ class TechTrendAnalyzer:
             if not video_ids:
                 continue
 
+            # Deduplicate: only fetch details for video IDs we haven't seen yet
+            new_video_ids = [vid for vid in video_ids if vid not in all_videos]
+            if not new_video_ids:
+                continue
+
             try:
-                details = self.get_video_details(video_ids)
+                details = self.get_video_details(new_video_ids)
+                api_calls_used += 1
             except HttpError as e:
-                msg = f"Video details failed for IDs {video_ids[:5]}...: HTTP {e.resp.status} - {e}"
+                msg = f"Video details failed for IDs {new_video_ids[:5]}...: HTTP {e.resp.status} - {e}"
                 logger.error(msg)
                 errors.append(msg)
                 continue
             except Exception as e:
-                msg = f"Video details failed for IDs {video_ids[:5]}...: {type(e).__name__}: {e}"
+                msg = f"Video details failed for IDs {new_video_ids[:5]}...: {type(e).__name__}: {e}"
                 logger.error(msg)
                 errors.append(msg)
                 continue
@@ -308,6 +316,7 @@ class TechTrendAnalyzer:
             run_date=now.strftime("%Y-%m-%d %H:%M:%S UTC"),
             queries_used=queries,
             errors=errors,
+            api_calls_used=api_calls_used,
         )
 
         result = AnalysisResult(

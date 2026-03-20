@@ -28,6 +28,13 @@ class InterestItem(BaseModel):
     ratio: float  # 0.0 – 1.0
 
 
+class PaginatedVideos(BaseModel):
+    total: int
+    offset: int
+    limit: int
+    videos: list[VideoItem]
+
+
 class AnalysisMetadata(BaseModel):
     video_count: int
     period_days: int
@@ -35,6 +42,7 @@ class AnalysisMetadata(BaseModel):
     run_date: str
     queries_used: list[str]
     errors: list[str] = []
+    api_calls_used: int = 0
 
 
 class AnalysisResult(BaseModel):
@@ -48,3 +56,19 @@ class ErrorResponse(BaseModel):
     error: str
     detail: str
     status_code: int
+
+
+class TrendItem(BaseModel):
+    keyword: str
+    rank: int
+    count: int
+    category: str
+    rank_change: int | None = None
+    is_new: bool = False
+    previous_rank: int | None = None
+
+
+class TrendComparison(BaseModel):
+    current_date: str
+    previous_date: str
+    trends: list[TrendItem]
