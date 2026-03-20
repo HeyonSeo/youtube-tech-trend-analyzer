@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": ".next",
+  "regions": ["icn1"],
+  "rewrites": [
+    {
+      "source": "/backend-api/:path*",
+      "destination": "${BACKEND_URL}/api/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/backend-api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, must-revalidate" }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/analyze",
+      "schedule": "0 21 * * *"
+    }
+  ]
+}
