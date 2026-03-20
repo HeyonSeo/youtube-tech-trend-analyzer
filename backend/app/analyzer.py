@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import logging
 import re
+import time
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
+import httplib2
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
+from app import config
 from app.config import (
     INTEREST_CATEGORIES,
     SEARCH_QUERIES_EN,
@@ -21,6 +26,33 @@ from app.models import (
     VideoItem,
 )
 
+logger = logging.getLogger(__name__)
+
+# Module-level cache: key -> (timestamp, result)
+_cache: dict[str, tuple[datetime, AnalysisResult]] = {}
+_last_analysis_time: datetime | None = None
+
+
+def get_cache_info() -> dict:
+    """Return cache status information."""
+    return {
+        "entries": len(_cache),
+        "keys": list(_cache.keys()),
+        "last_analysis_time": (
+            _last_analysis_time.isoformat() if _last_analysis_time else None
+        ),
+    }
+
+
+def clear_cache() -> int:
+    """Clear the analysis cache. Returns the number of entries removed."""
+    global _last_analysis_time
+    count = len(_cache)
+    _cache.clear()
+    _last_analysis_time = None
+    logger.info("Cache cleared (%d entries removed)", count)
+    return count
+
 
 class TechTrendAnalyzer:
     """YouTube tech-review trend analyzer backed by the YouTube Data API v3."""
@@ -31,7 +63,34 @@ class TechTrendAnalyzer:
                 "YOUTUBE_API_KEY is not set. "
                 "Add it to your .env file or export it as an environment variable."
             )
-        self._youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
+        http = httplib2.Http(timeout=config.YOUTUBE_API_TIMEOUT)
+        self._youtube = build(
+            "youtube", "v3", developerKey=YOUTUBE_API_KEY, http=http
+        )
+
+    # ------------------------------------------------------------------
+    # Retry helper
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _retry_api_call(func, max_retries: int = 3):
+        """Execute *func* with exponential backoff on transient errors."""
+        for attempt in range(max_retries):
+            try:
+                return func()
+            except HttpError as e:
+                if e.resp.status in (429, 500, 503) and attempt < max_retries - 1:
+                    wait = 2 ** attempt
+                    logger.warning(
+                        "API error %s, retrying in %ds (attempt %d/%d)...",
+                        e.resp.status,
+                        wait,
+                        attempt + 1,
+                        max_retries,
+                    )
+                    time.sleep(wait)
+                else:
+                    raise
 
     # ------------------------------------------------------------------
     # YouTube helpers
@@ -52,7 +111,7 @@ class TechTrendAnalyzer:
             publishedAfter=published_after,
             maxResults=max_results,
         )
-        return request.execute()
+        return self._retry_api_call(request.execute)
 
     def get_video_details(self, video_ids: list[str]) -> dict:
         """Fetch statistics and snippet for the given *video_ids*."""
@@ -60,7 +119,7 @@ class TechTrendAnalyzer:
             part="statistics,snippet",
             id=",".join(video_ids),
         )
-        return request.execute()
+        return self._retry_api_call(request.execute)
 
     # ------------------------------------------------------------------
     # NLP helpers
@@ -115,6 +174,16 @@ class TechTrendAnalyzer:
         top_n:
             Number of top keywords to include in the result.
         """
+        global _last_analysis_time
+
+        # -- Check cache --
+        cache_key = f"{period_days}:{region}:{top_n}"
+        if cache_key in _cache:
+            cached_time, cached_result = _cache[cache_key]
+            if (datetime.now(timezone.utc) - cached_time).seconds < config.CACHE_TTL_SECONDS:
+                logger.info("Cache hit for %s", cache_key)
+                return cached_result
+
         now = datetime.now(timezone.utc)
         published_after = (now - timedelta(days=period_days)).isoformat()
 
@@ -128,11 +197,20 @@ class TechTrendAnalyzer:
 
         all_videos: dict[str, dict] = {}
         keyword_counter: Counter = Counter()
+        errors: list[str] = []
 
         for query in queries:
             try:
                 results = self.search_videos(query, published_after)
-            except Exception:
+            except HttpError as e:
+                msg = f"Search failed for query '{query}': HTTP {e.resp.status} - {e}"
+                logger.error(msg)
+                errors.append(msg)
+                continue
+            except Exception as e:
+                msg = f"Search failed for query '{query}': {type(e).__name__}: {e}"
+                logger.error(msg)
+                errors.append(msg)
                 continue
 
             video_ids = [
@@ -145,7 +223,15 @@ class TechTrendAnalyzer:
 
             try:
                 details = self.get_video_details(video_ids)
-            except Exception:
+            except HttpError as e:
+                msg = f"Video details failed for IDs {video_ids[:5]}...: HTTP {e.resp.status} - {e}"
+                logger.error(msg)
+                errors.append(msg)
+                continue
+            except Exception as e:
+                msg = f"Video details failed for IDs {video_ids[:5]}...: {type(e).__name__}: {e}"
+                logger.error(msg)
+                errors.append(msg)
                 continue
 
             for item in details.get("items", []):
@@ -221,11 +307,24 @@ class TechTrendAnalyzer:
             region=region,
             run_date=now.strftime("%Y-%m-%d %H:%M:%S UTC"),
             queries_used=queries,
+            errors=errors,
         )
 
-        return AnalysisResult(
+        result = AnalysisResult(
             metadata=metadata,
             videos=video_items,
             keywords=keyword_items,
             interests=interest_items,
         )
+
+        # Store in cache
+        _cache[cache_key] = (datetime.now(timezone.utc), result)
+        _last_analysis_time = datetime.now(timezone.utc)
+        logger.info(
+            "Analysis complete: %d videos, %d errors, cached as '%s'",
+            len(all_videos),
+            len(errors),
+            cache_key,
+        )
+
+        return result

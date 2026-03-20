@@ -1,30 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { fetchAnalysis, AnalysisResult } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAnalysis } from "@/lib/api";
 import VideoTable from "@/components/VideoTable";
 import RegionToggle from "@/components/RegionToggle";
-import { Loader2, Play } from "lucide-react";
+import { TableSkeleton } from "@/components/LoadingSkeleton";
+import { Play } from "lucide-react";
 
 export default function VideosPage() {
   const [region, setRegion] = useState("all");
   const [periodDays, setPeriodDays] = useState(7);
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<AnalysisResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  async function handleAnalyze() {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await fetchAnalysis(periodDays, region, 50);
-      setData(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "분석 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["analysis", periodDays, region, 50],
+    queryFn: () => fetchAnalysis(periodDays, region, 50),
+    enabled: false,
+  });
 
   return (
     <div className="space-y-6">
@@ -62,12 +54,15 @@ export default function VideosPage() {
         </div>
 
         <button
-          onClick={handleAnalyze}
-          disabled={loading}
+          onClick={() => refetch()}
+          disabled={isLoading}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg font-medium transition-colors text-sm"
         >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+          {isLoading ? (
+            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
           ) : (
             <Play className="w-4 h-4" />
           )}
@@ -77,20 +72,17 @@ export default function VideosPage() {
 
       {error && (
         <div className="bg-red-900/30 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-sm">
-          {error}
+          {error instanceof Error ? error.message : "분석 중 오류가 발생했습니다."}
         </div>
       )}
 
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-400" />
-          <p className="text-slate-400">영상 데이터를 불러오고 있습니다...</p>
-        </div>
+      {isLoading && (
+        <TableSkeleton rows={10} />
       )}
 
-      {data && !loading && <VideoTable videos={data.videos} showLink />}
+      {data && !isLoading && <VideoTable videos={data.videos} showLink />}
 
-      {!data && !loading && !error && (
+      {!data && !isLoading && !error && (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-500">
           <Play className="w-16 h-16" />
           <p className="text-lg">위의 &quot;분석 시작&quot; 버튼을 클릭하여 영상을 불러오세요</p>

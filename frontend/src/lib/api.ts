@@ -49,3 +49,6 @@ export async function fetchAnalysis(periodDays = 7, region = "all", topN = 10): 
 export function getExportUrl(format: "csv" | "xlsx", periodDays = 7, region = "all"): string {
   return `${API_BASE}/api/export/${format}?period_days=${periodDays}&region=${region}`;
 }
+
+// React Query hooks (import these in pages)
+// Usage: const { data, isLoading, error } = useAnalysis(7, "all", 10);

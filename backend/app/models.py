@@ -34,6 +34,7 @@ class AnalysisMetadata(BaseModel):
     region: str
     run_date: str
     queries_used: list[str]
+    errors: list[str] = []
 
 
 class AnalysisResult(BaseModel):
@@ -41,3 +42,9 @@ class AnalysisResult(BaseModel):
     videos: list[VideoItem]
     keywords: list[KeywordItem]
     interests: list[InterestItem]
+
+
+class ErrorResponse(BaseModel):
+    error: str
+    detail: str
+    status_code: int

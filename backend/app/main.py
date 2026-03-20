@@ -2,22 +2,46 @@ from __future__ import annotations
 
 import csv
 import io
+import logging
+import time as _time
 from typing import Annotated
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+from googleapiclient.errors import HttpError
 from openpyxl import Workbook
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
-from app.analyzer import TechTrendAnalyzer
+from app import config
+from app.analyzer import TechTrendAnalyzer, clear_cache, get_cache_info
 from app.config import CORS_ORIGINS
 from app.models import AnalysisResult, InterestItem, KeywordItem, VideoItem
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+logging.basicConfig(
+    level=getattr(logging, config.LOG_LEVEL),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# App & rate limiter
+# ---------------------------------------------------------------------------
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="YouTube Tech Trend Analyzer",
     description="Analyze trending tech-review videos on YouTube and extract keywords / viewer interests.",
     version="1.0.0",
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +52,62 @@ app.add_middleware(
 )
 
 
+# ---------------------------------------------------------------------------
+# Exception handlers
+# ---------------------------------------------------------------------------
+
+
+@app.exception_handler(HttpError)
+async def youtube_api_error_handler(request: Request, exc: HttpError):
+    logger.error("YouTube API error: %s", exc)
+    return JSONResponse(
+        status_code=502,
+        content={
+            "error": "YouTube API Error",
+            "detail": str(exc),
+            "status_code": 502,
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def general_error_handler(request: Request, exc: Exception):
+    logger.error("Unhandled error: %s", exc, exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal Server Error",
+            "detail": "An unexpected error occurred",
+            "status_code": 500,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Request logging middleware
+# ---------------------------------------------------------------------------
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = _time.time()
+    response = await call_next(request)
+    duration = _time.time() - start
+    logger.info(
+        "%s %s -> %s (%.3fs)",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration,
+    )
+    return response
+
+
+# ---------------------------------------------------------------------------
+# Helper
+# ---------------------------------------------------------------------------
+
+
 def _get_analyzer() -> TechTrendAnalyzer:
     return TechTrendAnalyzer()
 
@@ -36,17 +116,39 @@ def _get_analyzer() -> TechTrendAnalyzer:
 # Health check
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/health")
-async def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+@limiter.limit("30/minute")
+async def health_check(request: Request) -> dict:
+    cache_info = get_cache_info()
+    return {
+        "status": "ok",
+        "cache_entries": cache_info["entries"],
+        "last_analysis_time": cache_info["last_analysis_time"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Cache management
+# ---------------------------------------------------------------------------
+
+
+@app.post("/api/cache/clear")
+@limiter.limit("30/minute")
+async def clear_analysis_cache(request: Request) -> dict:
+    removed = clear_cache()
+    return {"status": "ok", "entries_removed": removed}
 
 
 # ---------------------------------------------------------------------------
 # Full analysis
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/analyze", response_model=AnalysisResult)
+@limiter.limit("10/minute")
 async def analyze(
+    request: Request,
     period_days: Annotated[int, Query(ge=1, le=30)] = 7,
     region: Annotated[str, Query(pattern=r"^(kr|global|all)$")] = "all",
     top_n: Annotated[int, Query(ge=1, le=50)] = 10,
@@ -59,8 +161,11 @@ async def analyze(
 # Keywords only
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/keywords", response_model=list[KeywordItem])
+@limiter.limit("30/minute")
 async def get_keywords(
+    request: Request,
     period_days: Annotated[int, Query(ge=1, le=30)] = 7,
     region: Annotated[str, Query(pattern=r"^(kr|global|all)$")] = "all",
     top_n: Annotated[int, Query(ge=1, le=50)] = 10,
@@ -74,8 +179,11 @@ async def get_keywords(
 # Interests only
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/interests", response_model=list[InterestItem])
+@limiter.limit("30/minute")
 async def get_interests(
+    request: Request,
     period_days: Annotated[int, Query(ge=1, le=30)] = 7,
     region: Annotated[str, Query(pattern=r"^(kr|global|all)$")] = "all",
 ) -> list[InterestItem]:
@@ -88,8 +196,11 @@ async def get_interests(
 # Top videos
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/videos", response_model=list[VideoItem])
+@limiter.limit("30/minute")
 async def get_videos(
+    request: Request,
     period_days: Annotated[int, Query(ge=1, le=30)] = 7,
     region: Annotated[str, Query(pattern=r"^(kr|global|all)$")] = "all",
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
@@ -103,8 +214,11 @@ async def get_videos(
 # CSV export
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/export/csv")
+@limiter.limit("30/minute")
 async def export_csv(
+    request: Request,
     period_days: Annotated[int, Query(ge=1, le=30)] = 7,
     region: Annotated[str, Query(pattern=r"^(kr|global|all)$")] = "all",
     top_n: Annotated[int, Query(ge=1, le=50)] = 10,
@@ -130,8 +244,11 @@ async def export_csv(
 # XLSX export
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/export/xlsx")
+@limiter.limit("30/minute")
 async def export_xlsx(
+    request: Request,
     period_days: Annotated[int, Query(ge=1, le=30)] = 7,
     region: Annotated[str, Query(pattern=r"^(kr|global|all)$")] = "all",
     top_n: Annotated[int, Query(ge=1, le=50)] = 10,
