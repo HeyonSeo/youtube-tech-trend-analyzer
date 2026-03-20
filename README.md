@@ -1,46 +1,81 @@
-# YouTube 테크 리뷰 트렌드 분석기
+# TechPulse — YouTube 테크 리뷰 트렌드 분석기
 
-최근 7일간 YouTube '테크 리뷰' 분야에서 높은 조회수를 기록한 영상들을 분석하여 공통 키워드 10개와 시청자 주요 관심사를 표 형태로 요약합니다.
+YouTube '테크 리뷰' 영상의 키워드 트렌드와 시청자 관심사를 분석하는 웹 대시보드.
 
-## 기능
+## 주요 기능
 
-- YouTube Data API v3를 통한 테크 리뷰 영상 검색 (한국어/영어)
-- 조회수 기준 상위 영상 목록 출력
-- 제목·태그·설명에서 키워드 자동 추출 (한/영 불용어 필터링)
-- 키워드를 8개 관심사 카테고리로 자동 분류
-- 마크다운 스타일 테이블로 결과 출력
+- YouTube Data API v3 기반 테크 리뷰 영상 자동 수집 (한국어 + 영어)
+- 키워드 TOP 10 추출 및 8개 관심사 카테고리 분류
+- 지역별(한국/글로벌/통합) 분석
+- CSV/Excel 내보내기
+- 반응형 다크 테마 대시보드
+
+## 기술 스택
+
+| 레이어 | 기술 |
+|--------|------|
+| Frontend | Next.js 14, React 18, TypeScript, Tailwind CSS, Recharts |
+| Backend | Python 3.11+, FastAPI, Pydantic |
+| API | YouTube Data API v3 |
 
 ## 사전 준비
 
-1. [Google Cloud Console](https://console.cloud.google.com/)에서 프로젝트를 만들고 **YouTube Data API v3**를 활성화합니다.
-2. API 키를 발급받습니다.
+[Google Cloud Console](https://console.cloud.google.com/)에서 YouTube Data API v3를 활성화하고 API 키를 발급받으세요.
 
 ## 설치 및 실행
 
+### Backend
+
 ```bash
+cd backend
 pip install -r requirements.txt
 cp .env.example .env
-# .env 파일에 발급받은 API 키를 입력
-python analyzer.py
+# .env에 YOUTUBE_API_KEY 입력
+uvicorn app.main:app --reload --port 8000
 ```
 
-## 출력 예시
+### Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.local.example .env.local
+npm run dev
+```
+
+http://localhost:3000 에서 대시보드에 접속할 수 있습니다.
+
+## 프로젝트 구조
 
 ```
-▶ 공통 키워드 TOP 10
-| 순위 | 키워드     | 출현 빈도 |
-|------|-----------|----------|
-| 1    | 갤럭시     | 42       |
-| 2    | 아이폰     | 38       |
-| ...  | ...       | ...      |
-
-▶ 시청자 주요 관심사 분석
-| 순위 | 관심사 분야    | 관련도 점수 | 비중                 |
-|------|--------------|-----------|---------------------|
-| 1    | 스마트폰/모바일 | 120       | ████████████████████ |
-| 2    | 성능/벤치마크   | 85        | ██████████████       |
-| ...  | ...          | ...       | ...                  |
+├── backend/
+│   ├── app/
+│   │   ├── main.py          # FastAPI 앱 + API 엔드포인트
+│   │   ├── analyzer.py      # 분석 엔진 (TechTrendAnalyzer)
+│   │   ├── models.py        # Pydantic 모델
+│   │   └── config.py        # 설정 (검색어, 불용어, 카테고리)
+│   └── requirements.txt
+├── frontend/
+│   └── src/
+│       ├── app/              # Next.js 페이지 (대시보드, 키워드, 영상)
+│       ├── components/       # UI 컴포넌트 (차트, 테이블, 버튼)
+│       └── lib/api.ts        # API 클라이언트
+├── docs/
+│   └── PRD.md               # 제품 요구사항 정의서
+└── analyzer.py              # CLI 버전 (레거시)
 ```
+
+## API 엔드포인트
+
+| Method | Path | 설명 |
+|--------|------|------|
+| GET | /api/health | 서버 상태 확인 |
+| GET | /api/analyze | 전체 분석 실행 |
+| GET | /api/keywords | 키워드 TOP N |
+| GET | /api/interests | 관심사 카테고리 |
+| GET | /api/videos | 조회수 상위 영상 |
+| GET | /api/export/csv | CSV 다운로드 |
+| GET | /api/export/xlsx | Excel 다운로드 |
 
 ## 라이선스
 
