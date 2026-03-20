@@ -138,6 +138,13 @@ SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
 DB_ENABLED: bool = bool(SUPABASE_URL and SUPABASE_KEY)
 
+# ---------------------------------------------------------------------------
+# Resend (Email)
+# ---------------------------------------------------------------------------
+RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
+REPORT_FROM_EMAIL: str = os.getenv("REPORT_FROM_EMAIL", "noreply@techpulse.app")
+EMAIL_ENABLED: bool = bool(RESEND_API_KEY)
+
 
 # ---------------------------------------------------------------------------
 # Load custom search queries

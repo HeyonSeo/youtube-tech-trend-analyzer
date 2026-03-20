@@ -107,3 +107,19 @@ export async function clearCache(): Promise<void> {
   const res = await fetch(`${API_BASE}/api/cache/clear`, { method: "POST" });
   if (!res.ok) throw new Error("Cache clear failed");
 }
+
+export async function sendReport(recipients: string[]): Promise<{ message: string; success: boolean }> {
+  const res = await fetch(`${API_BASE}/api/report/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ recipients }),
+  });
+  if (!res.ok) throw new Error("Report send failed");
+  return res.json();
+}
+
+export async function previewReport(): Promise<{ html: string; subject: string }> {
+  const res = await fetch(`${API_BASE}/api/report/preview`);
+  if (!res.ok) throw new Error("Preview failed");
+  return res.json();
+}

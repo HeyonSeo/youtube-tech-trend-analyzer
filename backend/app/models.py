@@ -72,3 +72,16 @@ class TrendComparison(BaseModel):
     current_date: str
     previous_date: str
     trends: list[TrendItem]
+
+
+class ReportRecipient(BaseModel):
+    email: str
+
+
+class ReportSendRequest(BaseModel):
+    recipients: list[str]
+
+
+class ReportPreviewResponse(BaseModel):
+    html: str
+    subject: str

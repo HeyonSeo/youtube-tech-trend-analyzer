@@ -6,9 +6,9 @@ import logging
 import time as _time
 from typing import Annotated
 
-from datetime import date
+from datetime import date, datetime, timezone
 
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -22,7 +22,8 @@ from app import config
 from app.analyzer import TechTrendAnalyzer, clear_cache, get_cache_info
 from app.config import CORS_ORIGINS, INTEREST_CATEGORIES, load_search_queries
 from app.database import save_analysis_run, get_trend_comparison, get_trend_history
-from app.models import AnalysisResult, InterestItem, KeywordItem, PaginatedVideos, VideoItem
+from app.email_report import generate_report_html, send_report
+from app.models import AnalysisResult, InterestItem, KeywordItem, PaginatedVideos, ReportSendRequest, VideoItem
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -344,3 +345,42 @@ async def get_keyword_trend_history(
     if result is None:
         return {"message": "키워드 이력이 없습니다.", "history": []}
     return {"keyword": keyword, "history": result}
+
+
+# ---------------------------------------------------------------------------
+# Email report
+# ---------------------------------------------------------------------------
+
+
+@app.post("/api/report/send")
+@limiter.limit("5/minute")
+async def send_email_report(request: Request, body: ReportSendRequest):
+    """Send report email to specified recipients."""
+    analyzer = _get_analyzer()
+    result = analyzer.analyze(period_days=7, region="all", top_n=10)
+
+    trends_data = None
+    if config.DB_ENABLED:
+        comparison = get_trend_comparison("all")
+        if comparison:
+            trends_data = comparison.get("trends")
+
+    top_video = result.videos[0] if result.videos else None
+    html = generate_report_html(result.keywords, {}, top_video, trends_data)
+
+    success = send_report(body.recipients, html)
+    if not success:
+        raise HTTPException(status_code=503, detail="이메일 발송에 실패했습니다. RESEND_API_KEY를 확인해주세요.")
+    return {"message": f"{len(body.recipients)}명에게 리포트를 발송했습니다.", "success": True}
+
+
+@app.get("/api/report/preview")
+@limiter.limit("10/minute")
+async def preview_report(request: Request):
+    """Preview the report HTML."""
+    analyzer = _get_analyzer()
+    result = analyzer.analyze(period_days=7, region="all", top_n=10)
+    top_video = result.videos[0] if result.videos else None
+    html = generate_report_html(result.keywords, {}, top_video)
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return {"html": html, "subject": f"[TechPulse] 주간 테크 트렌드 리포트 — {now}"}

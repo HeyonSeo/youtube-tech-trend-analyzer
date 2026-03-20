@@ -5,6 +5,8 @@ import Link from "next/link";
 import QueryProvider from "@/lib/QueryProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ThemeToggle from "@/components/ThemeToggle";
+import AuthProvider from "@/components/AuthProvider";
+import UserMenu from "@/components/UserMenu";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -61,16 +63,21 @@ export default function RootLayout({
                   </Link>
                 </div>
               </div>
-              <ThemeToggle />
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
+                <UserMenu />
+              </div>
             </div>
           </div>
         </nav>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <QueryProvider>
-            <ErrorBoundary>
-              {children}
-            </ErrorBoundary>
-          </QueryProvider>
+          <AuthProvider>
+            <QueryProvider>
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
+            </QueryProvider>
+          </AuthProvider>
         </main>
       </body>
     </html>
