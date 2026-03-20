@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 575" width="820" height="575" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+    </marker>
+    <marker id="arr-rev" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto">
+      <polygon points="8 0, 0 3, 8 6" fill="#94a3b8"/>
+    </marker>
+    <clipPath id="clip-fe">
+      <rect x="20" y="45" width="780" height="178" rx="10"/>
+    </clipPath>
+    <clipPath id="clip-be">
+      <rect x="20" y="262" width="780" height="200" rx="10"/>
+    </clipPath>
+    <clipPath id="clip-ex">
+      <rect x="20" y="496" width="780" height="68" rx="10"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="820" height="575" fill="#f8fafc" rx="6"/>
+
+  <!-- Title -->
+  <text x="410" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">TechPulse — 시스템 아키텍처 (System Architecture)</text>
+
+  <!-- ═══════════════ FRONTEND LAYER ═══════════════ -->
+  <rect x="20" y="45" width="780" height="178" rx="10" fill="#eff6ff" stroke="#60a5fa" stroke-width="1.5"/>
+  <!-- Header band -->
+  <rect x="20" y="45" width="780" height="26" fill="#3b82f6" clip-path="url(#clip-fe)"/>
+  <text x="410" y="63" text-anchor="middle" font-size="11" font-weight="600" fill="white">Frontend · Next.js 14 (App Router) · TypeScript · Tailwind CSS · Recharts · TanStack Query</text>
+
+  <!-- Pages label -->
+  <text x="36" y="90" font-size="9" font-weight="600" fill="#64748b" letter-spacing="1">PAGES</text>
+
+  <!-- Page boxes -->
+  <rect x="36"  y="96" width="108" height="30" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="90"  y="115" text-anchor="middle" font-size="10" fill="#1d4ed8">/ 대시보드</text>
+
+  <rect x="154" y="96" width="108" height="30" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="208" y="115" text-anchor="middle" font-size="10" fill="#1d4ed8">/keywords</text>
+
+  <rect x="272" y="96" width="108" height="30" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="326" y="115" text-anchor="middle" font-size="10" fill="#1d4ed8">/videos</text>
+
+  <rect x="390" y="96" width="108" height="30" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="444" y="115" text-anchor="middle" font-size="10" fill="#1d4ed8">/trends</text>
+
+  <rect x="508" y="96" width="108" height="30" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="562" y="115" text-anchor="middle" font-size="10" fill="#1d4ed8">/settings</text>
+
+  <!-- Components label -->
+  <text x="36" y="146" font-size="9" font-weight="600" fill="#64748b" letter-spacing="1">COMPONENTS</text>
+
+  <!-- Component boxes -->
+  <rect x="36"  y="152" width="148" height="56" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="110" y="168" text-anchor="middle" font-size="9" font-weight="600" fill="#1d4ed8">KeywordRankingChart</text>
+  <text x="110" y="181" text-anchor="middle" font-size="9" fill="#6b7280">Recharts BarChart</text>
+  <text x="110" y="194" text-anchor="middle" font-size="9" fill="#6b7280">언어별 필터</text>
+
+  <rect x="194" y="152" width="148" height="56" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="268" y="168" text-anchor="middle" font-size="9" font-weight="600" fill="#1d4ed8">InterestRadarChart</text>
+  <text x="268" y="181" text-anchor="middle" font-size="9" fill="#6b7280">Recharts RadarChart</text>
+  <text x="268" y="194" text-anchor="middle" font-size="9" fill="#6b7280">8 카테고리</text>
+
+  <rect x="352" y="152" width="130" height="56" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="417" y="168" text-anchor="middle" font-size="9" font-weight="600" fill="#1d4ed8">VideoTable</text>
+  <text x="417" y="181" text-anchor="middle" font-size="9" fill="#6b7280">페이지네이션</text>
+  <text x="417" y="194" text-anchor="middle" font-size="9" fill="#6b7280">썸네일 + 정렬</text>
+
+  <rect x="492" y="152" width="130" height="56" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="557" y="168" text-anchor="middle" font-size="9" font-weight="600" fill="#1d4ed8">ExportButton</text>
+  <text x="557" y="181" text-anchor="middle" font-size="9" fill="#6b7280">CSV / XLSX</text>
+  <text x="557" y="194" text-anchor="middle" font-size="9" fill="#6b7280">다운로드</text>
+
+  <rect x="632" y="152" width="148" height="56" rx="5" fill="white" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="706" y="168" text-anchor="middle" font-size="9" font-weight="600" fill="#1d4ed8">TrendModal</text>
+  <text x="706" y="181" text-anchor="middle" font-size="9" fill="#6b7280">키워드 이력</text>
+  <text x="706" y="194" text-anchor="middle" font-size="9" fill="#6b7280">Line Chart</text>
+
+  <!-- Arrow: Frontend → Backend (request) -->
+  <line x1="390" y1="223" x2="390" y2="257" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Arrow: Backend → Frontend (response, dashed) -->
+  <line x1="430" y1="257" x2="430" y2="223" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+  <text x="448" y="238" font-size="9" fill="#64748b">REST API / JSON</text>
+  <text x="448" y="250" font-size="9" fill="#64748b">HTTP(S)</text>
+
+  <!-- ═══════════════ BACKEND LAYER ═══════════════ -->
+  <rect x="20" y="262" width="780" height="200" rx="10" fill="#f0fdf4" stroke="#4ade80" stroke-width="1.5"/>
+  <!-- Header band -->
+  <rect x="20" y="262" width="780" height="26" fill="#22c55e" clip-path="url(#clip-be)"/>
+  <text x="410" y="280" text-anchor="middle" font-size="11" font-weight="600" fill="white">Backend · FastAPI · Python 3.11+ · Pydantic v2 · slowapi · openpyxl · Supabase SDK</text>
+
+  <!-- API Routes bar -->
+  <rect x="36" y="297" width="748" height="36" rx="5" fill="white" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="410" y="312" text-anchor="middle" font-size="9" font-weight="700" fill="#15803d">API ENDPOINTS</text>
+  <text x="410" y="326" text-anchor="middle" font-size="8.5" fill="#166534">GET /api/analyze · /keywords · /interests · /videos · /trends · /trends/{keyword} · /export/csv · /export/xlsx · /settings · /health    POST /api/cache/clear</text>
+
+  <!-- Sub-box: TechTrendAnalyzer -->
+  <rect x="36" y="344" width="234" height="103" rx="5" fill="white" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="153" y="360" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">TechTrendAnalyzer</text>
+  <text x="48"  y="375" font-size="9" fill="#166534">• YouTube API 검색 (search + videos.list)</text>
+  <text x="48"  y="389" font-size="9" fill="#166534">• 키워드 추출 · 불용어 필터링</text>
+  <text x="48"  y="403" font-size="9" fill="#166534">• 언어 감지 (ko / en 휴리스틱)</text>
+  <text x="48"  y="417" font-size="9" fill="#166534">• 관심사 분류 (8 카테고리)</text>
+  <text x="48"  y="431" font-size="9" fill="#166534">• 지수 백오프 재시도 (최대 3회)</text>
+
+  <!-- Sub-box: Database Layer -->
+  <rect x="285" y="344" width="234" height="103" rx="5" fill="white" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="402" y="360" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">Database Layer</text>
+  <text x="297" y="375" font-size="9" fill="#166534">• save_analysis_run()</text>
+  <text x="297" y="389" font-size="9" fill="#166534">• get_trend_comparison(weeks)</text>
+  <text x="297" y="403" font-size="9" fill="#166534">• get_trend_history(keyword)</text>
+  <text x="297" y="417" font-size="9" fill="#166534">• Supabase Python SDK</text>
+  <text x="297" y="431" font-size="9" fill="#166534">• Lazy client initialization</text>
+
+  <!-- Sub-box: Middleware & Cache -->
+  <rect x="534" y="344" width="250" height="103" rx="5" fill="white" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="659" y="360" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">Middleware &amp; Cache</text>
+  <text x="546" y="375" font-size="9" fill="#166534">• In-memory TTL 캐시 (key: period:region:topN)</text>
+  <text x="546" y="389" font-size="9" fill="#166534">• Rate Limit: 10/min (analyze), 30/min (others)</text>
+  <text x="546" y="403" font-size="9" fill="#166534">• GZip 압축 (≥1 KB)</text>
+  <text x="546" y="417" font-size="9" fill="#166534">• CORS · Request 로깅 미들웨어</text>
+  <text x="546" y="431" font-size="9" fill="#166534">• HttpError / 500 전역 핸들러</text>
+
+  <!-- Arrows: Backend → External -->
+  <line x1="153" y1="447" x2="153" y2="491" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="402" y1="447" x2="402" y2="491" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ═══════════════ EXTERNAL SERVICES ═══════════════ -->
+  <rect x="20" y="496" width="780" height="68" rx="10" fill="#fff7ed" stroke="#fb923c" stroke-width="1.5"/>
+  <!-- Header band -->
+  <rect x="20" y="496" width="780" height="22" fill="#f97316" clip-path="url(#clip-ex)"/>
+  <text x="410" y="512" text-anchor="middle" font-size="10" font-weight="600" fill="white">External Services</text>
+
+  <!-- YouTube -->
+  <rect x="36"  y="526" width="220" height="30" rx="5" fill="white" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="146" y="539" text-anchor="middle" font-size="10" font-weight="600" fill="#ea580c">YouTube Data API v3</text>
+  <text x="146" y="551" text-anchor="middle" font-size="9"  fill="#9a3412">search.list · videos.list</text>
+
+  <!-- Supabase -->
+  <rect x="300" y="526" width="220" height="30" rx="5" fill="white" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="410" y="539" text-anchor="middle" font-size="10" font-weight="600" fill="#ea580c">Supabase (PostgreSQL)</text>
+  <text x="410" y="551" text-anchor="middle" font-size="9"  fill="#9a3412">analysis_runs · keywords · videos</text>
+
+  <!-- Vercel -->
+  <rect x="564" y="526" width="220" height="30" rx="5" fill="white" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="674" y="539" text-anchor="middle" font-size="10" font-weight="600" fill="#ea580c">Vercel</text>
+  <text x="674" y="551" text-anchor="middle" font-size="9"  fill="#9a3412">Hosting · CDN · CI/CD</text>
+</svg>

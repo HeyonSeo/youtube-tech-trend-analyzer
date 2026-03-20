@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 500" width="860" height="500" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+    </marker>
+    <marker id="arr-dash" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#c084fc"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="860" height="500" fill="#f8fafc" rx="6"/>
+
+  <!-- Title -->
+  <text x="430" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">TechPulse — 데이터 흐름 (Data Flow)</text>
+
+  <!-- ── Actors (column headers) ── -->
+  <!-- User -->
+  <rect x="20"  y="45" width="100" height="36" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="70"  y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">사용자</text>
+
+  <!-- Frontend -->
+  <rect x="152" y="45" width="120" height="36" rx="8" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="212" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#1d4ed8">Frontend</text>
+
+  <!-- Backend -->
+  <rect x="306" y="45" width="120" height="36" rx="8" fill="#dcfce7" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="366" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#15803d">Backend</text>
+
+  <!-- Cache -->
+  <rect x="460" y="45" width="120" height="36" rx="8" fill="#fef9c3" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="520" y="63" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">In-Memory</text>
+  <text x="520" y="76" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">Cache</text>
+
+  <!-- YouTube API -->
+  <rect x="614" y="45" width="120" height="36" rx="8" fill="#fee2e2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="674" y="63" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">YouTube</text>
+  <text x="674" y="76" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">Data API</text>
+
+  <!-- Supabase -->
+  <rect x="734" y="45" width="106" height="36" rx="8" fill="#ede9fe" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="787" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#5b21b6">Supabase</text>
+
+  <!-- Lifelines -->
+  <line x1="70"  y1="81" x2="70"  y2="480" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="212" y1="81" x2="212" y2="480" stroke="#93c5fd" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="366" y1="81" x2="366" y2="480" stroke="#86efac" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="520" y1="81" x2="520" y2="480" stroke="#fde68a" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="674" y1="81" x2="674" y2="480" stroke="#fca5a5" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="787" y1="81" x2="787" y2="480" stroke="#c4b5fd" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- ── Step labels ── -->
+  <!-- Step 1 -->
+  <text x="8" y="120" font-size="9" font-weight="700" fill="#94a3b8">①</text>
+  <line x1="70" y1="115" x2="212" y2="115" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="141" y="110" text-anchor="middle" font-size="9" fill="#374151">필터 선택</text>
+  <text x="141" y="123" text-anchor="middle" font-size="9" fill="#6b7280">(region, days, topN)</text>
+
+  <!-- Step 2 -->
+  <text x="8" y="162" font-size="9" font-weight="700" fill="#94a3b8">②</text>
+  <line x1="212" y1="157" x2="366" y2="157" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="289" y="152" text-anchor="middle" font-size="9" fill="#374151">GET /api/analyze</text>
+  <text x="289" y="165" text-anchor="middle" font-size="9" fill="#6b7280">?period_days=7&amp;region=all</text>
+
+  <!-- Step 3: cache check -->
+  <text x="8" y="204" font-size="9" font-weight="700" fill="#94a3b8">③</text>
+  <line x1="366" y1="199" x2="520" y2="199" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="443" y="194" text-anchor="middle" font-size="9" fill="#374151">캐시 조회</text>
+  <text x="443" y="207" text-anchor="middle" font-size="9" fill="#6b7280">key: period:region:topN</text>
+
+  <!-- Cache HIT path -->
+  <rect x="380" y="215" width="270" height="22" rx="4" fill="#fef9c3" stroke="#fbbf24" stroke-width="1"/>
+  <text x="515" y="230" text-anchor="middle" font-size="9" font-weight="600" fill="#92400e">CACHE HIT — TTL 이내</text>
+
+  <line x1="520" y1="237" x2="366" y2="237" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+  <text x="443" y="232" text-anchor="middle" font-size="9" fill="#d97706">캐시 결과 반환</text>
+
+  <!-- Cache MISS divider -->
+  <line x1="20" y1="256" x2="840" y2="256" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="2,4"/>
+  <rect x="330" y="248" width="200" height="16" rx="4" fill="#f1f5f9"/>
+  <text x="430" y="259" text-anchor="middle" font-size="9" font-weight="600" fill="#64748b">CACHE MISS — YouTube API 호출</text>
+
+  <!-- Step 4: YouTube search -->
+  <text x="8" y="290" font-size="9" font-weight="700" fill="#94a3b8">④</text>
+  <line x1="366" y1="285" x2="674" y2="285" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="520" y="280" text-anchor="middle" font-size="9" fill="#374151">search.list (12 쿼리 × 25 결과)</text>
+  <text x="520" y="293" text-anchor="middle" font-size="9" fill="#6b7280">KR 6개 + EN 6개 쿼리</text>
+
+  <!-- Step 5: videos.list -->
+  <text x="8" y="325" font-size="9" font-weight="700" fill="#94a3b8">⑤</text>
+  <line x1="674" y1="320" x2="366" y2="320" stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+  <text x="520" y="315" text-anchor="middle" font-size="9" fill="#374151">videos.list (statistics + snippet)</text>
+  <text x="520" y="328" text-anchor="middle" font-size="9" fill="#6b7280">중복 제거 후 상세 조회</text>
+
+  <!-- Step 6: NLP -->
+  <text x="8" y="360" font-size="9" font-weight="700" fill="#94a3b8">⑥</text>
+  <rect x="296" y="347" width="140" height="22" rx="4" fill="#dcfce7" stroke="#4ade80" stroke-width="1"/>
+  <text x="366" y="362" text-anchor="middle" font-size="9" font-weight="600" fill="#15803d">키워드 추출 + 분류</text>
+
+  <!-- Step 7: save to DB -->
+  <text x="8" y="395" font-size="9" font-weight="700" fill="#94a3b8">⑦</text>
+  <line x1="366" y1="390" x2="787" y2="390" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="576" y="385" text-anchor="middle" font-size="9" fill="#374151">save_analysis_run() — 비동기 저장</text>
+  <text x="576" y="398" text-anchor="middle" font-size="9" fill="#6b7280">analysis_runs + keywords + videos (Top 20)</text>
+
+  <!-- Step 8: cache store -->
+  <text x="8" y="430" font-size="9" font-weight="700" fill="#94a3b8">⑧</text>
+  <line x1="366" y1="425" x2="520" y2="425" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="443" y="420" text-anchor="middle" font-size="9" fill="#374151">결과 캐시 저장</text>
+
+  <!-- Step 9: response -->
+  <text x="8" y="462" font-size="9" font-weight="700" fill="#94a3b8">⑨</text>
+  <line x1="366" y1="457" x2="212" y2="457" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+  <line x1="212" y1="457" x2="70"  y2="457" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+  <text x="289" y="452" text-anchor="middle" font-size="9" fill="#374151">AnalysisResult JSON 반환</text>
+  <text x="141" y="452" text-anchor="middle" font-size="9" fill="#374151">차트 렌더링</text>
+</svg>
